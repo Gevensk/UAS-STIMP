@@ -9,6 +9,7 @@ if (!isLoggedIn) return <Redirect href="../login" />;
 
   return 	<Stack>
     <Stack.Screen name="movie" options={{ headerShown: false }} />
+    <Stack.Screen name="topup" options={{ title: "Top Up Saldo" }} />
 
     #Exercise
       <Stack.Screen

@@ -6,20 +6,20 @@ import { Button, Text, View } from 'react-native';
 import LogoutButton from '../component/logoutButton';
 
 export default function Index() {
-  const [username, setUsername] = useState<string>(''); 
-  const { logout } = useAuth(); 
-const cekLogin = async () => {
+  const [username, setUsername] = useState<string>('');
+  const { logout } = useAuth();
+  const cekLogin = async () => {
     try {
       const value = await AsyncStorage.getItem('username');
       if (value !== null) {
-        setUsername(value); 
+        setUsername(value);
       } else {
         setUsername('');
         logout();
       }
     } catch (e) {
       console.error('Error reading username from AsyncStorage', e);
-      setUsername(''); 
+      setUsername('');
       logout();
     }
   };
@@ -33,27 +33,32 @@ const cekLogin = async () => {
 
 
   return (
-    
+
     <View
       style={{
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        
+
       }}
     >
       <Text
-            style={{
-              color:"red",
-              fontSize:24
-      }}>Hello {username}</Text>
-      
-<Button
-title="Go to Movie"
-onPress={() => router.push('/movie' as Href)} 
-/>
+        style={{
+          color: "red",
+          fontSize: 24
+        }}>Hello {username}</Text>
 
-<LogoutButton/>
+      <Button
+        title="Go to Movie"
+        onPress={() => router.push('/movie' as Href)}
+      />
+
+      <Button
+        title="TopUp Saldo"
+        onPress={() => router.push('/topup' as Href)}
+      />
+
+      <LogoutButton />
 
     </View>
   );
