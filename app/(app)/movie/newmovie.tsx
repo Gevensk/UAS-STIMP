@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button, Image, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { useValidation } from 'react-simple-form-validator';
@@ -106,7 +105,7 @@ export default function NewMovie ()  {
                   "url="+url
           };
             try {
-              fetch('https://ubaya.cloud/react/160422093/newmovie.php',
+              fetch('https://ubaya.cloud/react/160422173/newmovie.php',
               options)
                 .then(response => response.json())
                 .then(resjson =>{
@@ -133,7 +132,6 @@ export default function NewMovie ()  {
       <Text>Title</Text>
       <TextInput
         style={styles.input}
-        placeholder="Title"
         onChangeText={setTitle}
         value={title}
       />

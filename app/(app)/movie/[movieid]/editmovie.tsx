@@ -1,9 +1,9 @@
 
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Button, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useValidation } from 'react-simple-form-validator';
 import RNPickerSelect from 'react-native-picker-select';
+import { useValidation } from 'react-simple-form-validator';
 
 
 export default function EditMovie ()  {
@@ -214,69 +214,70 @@ export default function EditMovie ()  {
 
 
   return (
-    <ScrollView style={styles.container}>
-      <Text>Title</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        onChangeText={setTitle}
-        value={title}
-      />
-      {renderTitleErrors()}
-      <Text>Overview</Text>
-      <TextInput
-        multiline
-        numberOfLines={4}
-        style={styles.input2}
-        value={overview}
-        onChangeText={setOverview} />
-      {renderOverviewErrors()}
-
-      <Text>Runtime</Text>
-      <TextInput
-        
-        style={styles.input}
-        onChangeText={setRuntime}
-        value={runtime} />
-        {renderRuntimeErrors()}
-
-      <Text>Release Date</Text>
-      <TextInput
-        
-        style={styles.input}
-        onChangeText={setReleasedate}
-        value={releasedate} />
-        {renderReleasedateErrors()}
-     <Text>Homepage</Text>
-      <TextInput
-        
-        style={styles.input}
-        onChangeText={setHomepage}
-        value={homepage} />
-        {renderHomepageErrors()}
-
-      <Text>Poster</Text>
-      <TextInput
-        
-        style={styles.input}
-        onChangeText={setUrl}
-        value={url} />
-        {renderPoster()}
-
-        {renderButtonSubmit()}
-
-        <Text>Genre:</Text>
-        <FlatList 
-        data={genres} 
-        keyExtractor={(item) => item.genre_name} 
-        renderItem={({item}) => (
-        <View><Text>{item.genre_name}</Text>
-        </View>)}
+    <>
+      <Stack.Screen options={{ title: "Edit Movie" }} />
+      <ScrollView style={styles.container}>
+        <Text>Title</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Title"
+          onChangeText={setTitle}
+          value={title}
         />
-        {renderComboBox()}
-    </ScrollView>
+        {renderTitleErrors()}
+        <Text>Overview</Text>
+        <TextInput
+          multiline
+          numberOfLines={4}
+          style={styles.input2}
+          value={overview}
+          onChangeText={setOverview} />
+        {renderOverviewErrors()}
 
-    
+        <Text>Runtime</Text>
+        <TextInput
+          
+          style={styles.input}
+          onChangeText={setRuntime}
+          value={runtime} />
+          {renderRuntimeErrors()}
+
+        <Text>Release Date</Text>
+        <TextInput
+          
+          style={styles.input}
+          onChangeText={setReleasedate}
+          value={releasedate} />
+          {renderReleasedateErrors()}
+      <Text>Homepage</Text>
+        <TextInput
+          
+          style={styles.input}
+          onChangeText={setHomepage}
+          value={homepage} />
+          {renderHomepageErrors()}
+
+        <Text>Poster</Text>
+        <TextInput
+          
+          style={styles.input}
+          onChangeText={setUrl}
+          value={url} />
+          {renderPoster()}
+
+          {renderButtonSubmit()}
+
+          <Text>Genre:</Text>
+          <FlatList 
+          data={genres} 
+          keyExtractor={(item) => item.genre_name} 
+          renderItem={({item}) => (
+          <View><Text>{item.genre_name}</Text>
+          </View>)}
+          />
+          {renderComboBox()}
+      </ScrollView>
+    </>
   );
 };
 
