@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Text, View } from 'react-native';
 import LogoutButton from '../component/logoutButton';
 
+
 export default function Index() {
   const [username, setUsername] = useState<string>('');
   const { logout } = useAuth();

@@ -8,6 +8,7 @@ export default function RootLayout() {
 if (!isLoggedIn) return <Redirect href="../login" />; 
 
   return 	<Stack>
+    <Stack.Screen name="index" options={{ title: "Bioskopi" }} />
     <Stack.Screen name="movie" options={{ headerShown: false }} />
     <Stack.Screen name="topup" options={{ title: "Top Up Saldo" }} />
 
