@@ -52,6 +52,7 @@ export default function Login() {
         if (json.result === "success") {
             try {
                 await AsyncStorage.setItem("username", json.user_name);
+                await AsyncStorage.setItem("role", json.role);
                 await AsyncStorage.setItem("userid", username);
                 alert("Login successful");
                 login();
