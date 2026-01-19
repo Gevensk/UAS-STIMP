@@ -26,7 +26,7 @@ const cekLogin = async () => {
 
   useEffect(() => {
     cekLogin()
-  }, [username]);
+  }, []);
 
 
   const router = useRouter();
