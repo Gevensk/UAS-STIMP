@@ -1,22 +1,19 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Card } from "@rneui/base";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
     FlatList,
     Image,
-    Pressable,
     StyleSheet,
     Text,
     TextInput,
-    View,
+    View
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 
 export default function Lokasi() {
     const [cari, setCari] = useState("");
     const [lokasi, setLokasi] = useState<any[]>([]);
-    const [role, setRole] = useState<string | null>(null);
 
     const router = useRouter();
 
@@ -42,14 +39,6 @@ export default function Lokasi() {
     };
 
     useEffect(() => {
-        const getRole = async () => {
-            const storedRole = await AsyncStorage.getItem("role");
-            setRole(storedRole);
-        };
-        getRole();
-    }, []);
-
-    useEffect(() => {
         fetchData();
     }, []);
 
@@ -72,20 +61,6 @@ export default function Lokasi() {
 
                         <Text style={styles.alamat}>{item.alamat}</Text>
                     </View>
-
-                    {role === "admin" && (
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.editButton,
-                                pressed && { opacity: 0.8 },
-                            ]}
-                            onPress={() => {
-                                console.log("Edit:", item.nama);
-                            }}
-                        >
-                            <Text style={styles.pesanText}>Edit</Text>
-                        </Pressable>
-                    )}
                 </Card>
             )}
         />
@@ -107,18 +82,6 @@ export default function Lokasi() {
 
                 {showData(lokasi)}
             </ScrollView>
-
-            {role === "admin" && (
-                <Pressable
-                    style={({ pressed }) => [
-                        styles.fab,
-                        pressed && { opacity: 0.8 },
-                    ]}
-                    onPress={() => router.push("/lokasi/newlokasi")}
-                >
-                    <Text style={styles.fabIcon}>+</Text>
-                </Pressable>
-            )}
         </View>
     );
 }

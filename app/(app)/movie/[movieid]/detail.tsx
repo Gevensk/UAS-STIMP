@@ -1,5 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Button, Card } from "@rneui/base";
+import { Card } from "@rneui/base";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -9,15 +8,6 @@ export default function DetailMovie() {
     const movieId = Array.isArray(movieid) ? movieid[0] : movieid;
     const [movieDetails, setMovieDetails] = useState<any>(null);
     const router = useRouter();
-    const [role, setRole] = useState<string | null>(null);
-
-    useEffect(() => {
-        const getRole = async () => {
-        const storedRole = await AsyncStorage.getItem("role");
-        setRole(storedRole);
-        };
-        getRole();
-    }, []);
 
     useEffect(() => {
         const fetchMovieDetails = async () => {
@@ -80,22 +70,6 @@ export default function DetailMovie() {
                                 ))}
                             </View>
                         </View>
-                        
-                        {role === "admin" && (
-                            <View style={styles.buttonRow}>
-                                <Button
-                                    title="Edit Movie Ini"
-                                    onPress={() => {
-                                        if (!movieId) return;
-
-                                        router.push({
-                                            pathname: "/movie/[movieid]/editmovie",
-                                            params: { movieid: movieId },
-                                        });
-                                    }}
-                                />
-                            </View>
-                        )}
                     </Card>
                 ) : (
                     <Text style={{ textAlign: "center", marginTop: 20 }}>

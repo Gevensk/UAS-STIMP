@@ -35,6 +35,16 @@ export default function OrderLayout() {
         />
 
         <Tabs.Screen
+          name="orderfood/index"
+          options={{
+            title: "Pesan Makanan",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="fast-food-outline" color={color} size={24} />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
           name="orderticket/index"
           options={{
             title: "Pesan Tiket",
@@ -45,11 +55,11 @@ export default function OrderLayout() {
         />
 
         <Tabs.Screen
-          name="orderfood/index"
+          name="ticketlist"
           options={{
-            title: "Pesan Makanan",
+            title: "Tiket Anda",
             tabBarIcon: ({ color }) => (
-              <Ionicons name="fast-food-outline" color={color} size={24} />
+              <Ionicons name="film-outline" color={color} size={24} />
             ),
           }}
         />

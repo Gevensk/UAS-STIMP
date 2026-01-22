@@ -1,14 +1,12 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Card } from "@rneui/base";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Image, StyleSheet, Text, TextInput, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 
 export default function Home() {
   const [cari, setCari] = useState("");
   const [movies, setMovies] = useState([]);
-  const [role, setRole] = useState<string | null>(null);
 
   const fetchData = async () => {
     const options = {
@@ -27,14 +25,6 @@ export default function Home() {
       console.log(error);
     }
   };
-
-  useEffect(() => {
-    const getRole = async () => {
-      const storedRole = await AsyncStorage.getItem("role");
-      setRole(storedRole);
-    };
-    getRole();
-  }, []);
 
   useEffect(() => {
     fetchData();
@@ -72,18 +62,6 @@ export default function Home() {
                 >
                   Detail
                 </Link>
-
-                {role === "admin" && (
-                  <Link
-                    href={{
-                      pathname: "/movie/[movieid]/editmovie",
-                      params: { movieid: item.movie_id.toString() },
-                    }}
-                    style={[styles.button, styles.editButton]}
-                  >
-                    Edit
-                  </Link>
-                )}
               </View>
             </View>
           </View>
@@ -106,18 +84,6 @@ export default function Home() {
 
         {showData(movies)}
       </ScrollView>
-      
-      {role === "admin" && (
-        <Pressable
-          style={({ pressed }) => [
-            styles.fab,
-            pressed && { opacity: 0.8 },
-          ]}
-          onPress={() => router.push("/movie/newmovie")}
-        >
-          <Text style={styles.fabIcon}>+</Text>
-        </Pressable>
-      )}
     </View>
   );
 }
