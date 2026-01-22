@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { Link, router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -10,7 +10,18 @@ import {
     View
 } from "react-native";
 
+// 2. Masukkan kode ini di dalam return(), di bagian atas biar kelihatan
+<View style={{ padding: 20, backgroundColor: 'yellow', marginBottom: 20 }}>
+    <Text>TESTING AREA (Akan Dihapus Nanti)</Text>
+
+    {/* Tes 1: Link Tanpa Params */}
+    <Link href="/order/orderticket/checkout" style={{ fontSize: 20, color: 'red', fontWeight: 'bold' }}>
+        KLIK SAYA: Cek Apakah Checkout.tsx Ada?
+    </Link>
+</View>
+
 export default function SeatSelection() {
+    // const router = useRouter();
     const params = useLocalSearchParams();
     const schedule_id = params.schedule_id as string;
     const price = parseInt(params.price as string) || 0;
@@ -59,34 +70,58 @@ export default function SeatSelection() {
         }
     };
 
-    const handleNext = () => {
+    // Di dalam file seatselection.tsx
+
+    // Tambahkan fungsi helper ini di luar komponen atau di dalam komponen (sebelum handleNext)
+    const confirmOrder = () => {
+        return new Promise((resolve) => {
+            Alert.alert(
+                "Konfirmasi Pesanan",
+                `Kamu memilih ${selectedSeats.length} kursi.\nTotal: Rp ${(selectedSeats.length * price).toLocaleString("id-ID")}\n\nLanjut ke pembayaran?`,
+                [
+                    {
+                        text: "Batal",
+                        style: "cancel",
+                        onPress: () => resolve(false), // Jika batal, kembalikan FALSE
+                    },
+                    {
+                        text: "Ya, Lanjut",
+                        onPress: () => resolve(true),  // Jika ya, kembalikan TRUE
+                    },
+                ],
+                { cancelable: false }
+            );
+        });
+    };
+
+    // Ubah handleNext menjadi ASYNC
+    const handleNext = async () => {
+        // 1. Validasi
         if (selectedSeats.length === 0) {
             Alert.alert("Pilih Kursi", "Minimal pilih 1 kursi dong.");
             return;
         }
 
-        Alert.alert(
-            "Siap Bayar?",
-            `Kursi: ${selectedSeats.join(", ")}\nTotal: Rp ${(selectedSeats.length * price).toLocaleString("id-ID")}`,
-            [
-                { text: "Batal", style: "cancel" },
-                {
-                    text: "Lanjut",
-                    onPress: () => {
-                        router.push({
-                            pathname: "/order/orderticket/checkout",
-                            params: {
-                                ...params,
-                                seats: JSON.stringify(selectedSeats),
-                                total_ticket_price: (selectedSeats.length * price).toString()
-                            }
-                        });
-                    }
-                }
-            ]
-        );
-    };
+        // 2. Tampilkan Alert dan TUNGGU (await) sampai user memilih
+        const userConfirmed = await confirmOrder();
 
+        // 3. Cek hasil pilihan user
+        if (userConfirmed) {
+            // 4. Navigasi dijalankan DI SINI (Di luar scope Alert, jadi aman 100%)
+            console.log("Navigasi dimulai...");
+            router.push({
+                pathname: "/order/orderticket/checkout",
+                params: {
+                    schedule_id: schedule_id,
+                    studio_name: studio_name,
+                    seats: JSON.stringify(selectedSeats),
+                    total_ticket_price: (selectedSeats.length * price).toString(),
+                },
+            });
+        } else {
+            console.log("User membatalkan pesanan");
+        }
+    };
     return (
         <>
             <Stack.Screen
@@ -109,7 +144,6 @@ export default function SeatSelection() {
                     {/* Garis Layar */}
                     <View style={styles.screenLine} />
                 </View>
-
                 <ScrollView contentContainerStyle={styles.seatContainer}>
                     {loading ? (
                         <ActivityIndicator size="large" color="#3f35f8" />
@@ -176,12 +210,34 @@ export default function SeatSelection() {
                             Rp {(selectedSeats.length * price).toLocaleString("id-ID")}
                         </Text>
                     </View>
-                    <Pressable
-                        style={[styles.btnCheckout, selectedSeats.length === 0 && styles.btnDisabled]}
-                        onPress={handleNext}
-                    >
-                        <Text style={styles.btnText}>Lanjut Bayar ➝</Text>
-                    </Pressable>
+                    {selectedSeats.length > 0 ? (
+                        /* KONDISI 1: Jika user SUDAH pilih kursi -> Pakai LINK agar navigasi pasti jalan */
+                        <Link
+                            href={{
+                                pathname: "/order/orderticket/checkout",
+                                params: {
+                                    schedule_id: schedule_id,
+                                    studio_name: studio_name,
+                                    // Kita kirim string JSON agar aman
+                                    seats: JSON.stringify(selectedSeats),
+                                    total_ticket_price: (selectedSeats.length * price).toString(),
+                                },
+                            }}
+                            asChild // PENTING: Agar style tombol di bawah tetap dipakai
+                        >
+                            <Pressable style={styles.btnCheckout}>
+                                <Text style={styles.btnText}>Lanjut Bayar (Rp {(selectedSeats.length * price).toLocaleString("id-ID")}) ➝</Text>
+                            </Pressable>
+                        </Link>
+                    ) : (
+                        /* KONDISI 2: Jika BELUM pilih kursi -> Tombol biasa (tanpa Link) yang disabled/abu-abu */
+                        <Pressable
+                            style={[styles.btnCheckout, styles.btnDisabled]}
+                            onPress={() => Alert.alert("Ups", "Pilih minimal 1 kursi dulu ya!")}
+                        >
+                            <Text style={styles.btnText}>Pilih Kursi Dulu</Text>
+                        </Pressable>
+                    )}
                 </View>
             </View>
         </>
@@ -240,4 +296,4 @@ const styles = StyleSheet.create({
     },
     btnDisabled: { backgroundColor: "#ccc" },
     btnText: { color: "white", fontWeight: "bold" },
-});
+});             
