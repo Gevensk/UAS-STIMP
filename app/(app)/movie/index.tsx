@@ -48,6 +48,12 @@ export default function Home() {
       renderItem={({ item }) => (
         <Card>
           <Card.Title>{item.title}</Card.Title>
+
+          {/* Status */}
+          <Text style={[styles.status,
+          item.status === "Coming Soon" ? styles.comingSoon : styles.nowShowing]}>
+            {item.status}
+          </Text>
           <Card.Divider />
 
           <View style={styles.row}>
@@ -106,7 +112,7 @@ export default function Home() {
 
         {showData(movies)}
       </ScrollView>
-      
+
       {role === "admin" && (
         <Pressable
           style={({ pressed }) => [
@@ -123,6 +129,21 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  status: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginTop: 4,
+    marginBottom: 6,
+  },
+
+  comingSoon: {
+    color: "#f59e0b", // kuning / oranye
+  },
+
+  nowShowing: {
+    color: "#22c55e", // hijau
+  },
+
   row: {
     flexDirection: "row",
   },

@@ -54,8 +54,11 @@ export default function Login() {
                 await AsyncStorage.setItem("username", json.user_name);
                 await AsyncStorage.setItem("role", json.role);
                 await AsyncStorage.setItem("userid", username);
+                await AsyncStorage.setItem("saldo", String(json.saldo));
                 alert("Login successful");
                 login();
+                console.log("JSON LOGIN:", json);
+
                 router.replace("/(app)");
             } catch (e) {
                 console.error("Error saving data to AsyncStorage", e);

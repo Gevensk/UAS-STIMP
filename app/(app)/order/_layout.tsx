@@ -51,6 +51,15 @@ export default function OrderLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="[movieid]"
+        options={{
+          title: "Pesan Tiket",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="ticket-outline" color={color} size={24} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

@@ -8,14 +8,19 @@ import LogoutButton from "../component/logoutButton";
 
 export default function Index() {
   const [username, setUsername] = useState<string>("");
+  const [saldo, setSaldo] = useState(0);
   const { logout } = useAuth();
   const router = useRouter();
 
   const cekLogin = async () => {
     try {
       const value = await AsyncStorage.getItem("username");
+      const saldo = await AsyncStorage.getItem("saldo");
       if (value !== null) {
         setUsername(value);
+        const numericSaldo = saldo ? parseInt(saldo, 10) : 0;
+        setSaldo(numericSaldo);
+        
       } else {
         logout();
       }
@@ -29,10 +34,19 @@ export default function Index() {
     cekLogin();
   }, []);
 
+  const formatRupiah = (number:any) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bioskopi App</Text>
       <Text style={styles.subtitle}>Hello, {username} 👋</Text>
+      <Text style={styles.subtitle}>Saldo: {formatRupiah(saldo)}</Text>
 
       <View style={styles.card}>
         <View style={styles.buttonWrapper}>
