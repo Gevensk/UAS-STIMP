@@ -13,10 +13,9 @@ import {
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 
-export default function Lokasi() {
+export default function OrderList() {
     const [cari, setCari] = useState("");
     const [lokasi, setLokasi] = useState<any[]>([]);
-    const [role, setRole] = useState<string | null>(null);
 
     const router = useRouter();
 
@@ -42,14 +41,6 @@ export default function Lokasi() {
     };
 
     useEffect(() => {
-        const getRole = async () => {
-            const storedRole = await AsyncStorage.getItem("role");
-            setRole(storedRole);
-        };
-        getRole();
-    }, []);
-
-    useEffect(() => {
         fetchData();
     }, []);
 
@@ -57,7 +48,7 @@ export default function Lokasi() {
         <FlatList
             data={data}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ paddingBottom: 20 }}
             renderItem={({ item }) => (
                 <Card containerStyle={styles.card}>
                     <Card.Title style={styles.title}>{item.nama}</Card.Title>
@@ -73,19 +64,24 @@ export default function Lokasi() {
                         <Text style={styles.alamat}>{item.alamat}</Text>
                     </View>
 
-                    {role === "admin" && (
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.editButton,
-                                pressed && { opacity: 0.8 },
-                            ]}
-                            onPress={() => {
-                                console.log("Edit:", item.nama);
-                            }}
-                        >
-                            <Text style={styles.pesanText}>Edit</Text>
-                        </Pressable>
-                    )}
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.pesanButton,
+                            pressed && { opacity: 0.8 },
+                        ]}
+                        onPress={async () => {
+                            console.log("ID Lokasi dipilih:", item.id);
+
+                            await AsyncStorage.setItem(
+                                "selected_lokasi",
+                                item.id.toString()
+                            );
+
+                            router.push("/order/orderfood/menu");
+                        }}
+                    >
+                        <Text style={styles.pesanText}>Pesan Disini</Text>
+                    </Pressable>
                 </Card>
             )}
         />
@@ -107,18 +103,6 @@ export default function Lokasi() {
 
                 {showData(lokasi)}
             </ScrollView>
-
-            {role === "admin" && (
-                <Pressable
-                    style={({ pressed }) => [
-                        styles.fab,
-                        pressed && { opacity: 0.8 },
-                    ]}
-                    onPress={() => router.push("/lokasi/newlokasi")}
-                >
-                    <Text style={styles.fabIcon}>+</Text>
-                </Pressable>
-            )}
         </View>
     );
 }
@@ -151,9 +135,9 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
 
-    editButton: {
+    pesanButton: {
         marginTop: 10,
-        backgroundColor: "#e88b09",
+        backgroundColor: "#0980e8",
         paddingVertical: 12,
         borderRadius: 10,
         alignItems: "center",

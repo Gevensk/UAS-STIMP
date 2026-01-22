@@ -1,13 +1,11 @@
-import { CartProvider } from "@/app/context/CartContext";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs, useRouter } from "expo-router";
 import { Pressable } from "react-native";
 
-export default function OrderLayout() {
+export default function AdminLayout() {
   const router = useRouter();
 
   return (
-    <CartProvider>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: "blue",
@@ -24,19 +22,9 @@ export default function OrderLayout() {
         }}
       >
         <Tabs.Screen
-          name="orderlist/index"
+          name="handleticket"
           options={{
-            title: "Pesanan Anda",
-            tabBarIcon: ({ color }) => (
-              <Ionicons name="list-outline" color={color} size={24} />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="orderticket"
-          options={{
-            title: "Pesan Tiket",
+            title: "Daftar Tiket",
             tabBarIcon: ({ color }) => (
               <Ionicons name="ticket-outline" color={color} size={24} />
             ),
@@ -44,36 +32,14 @@ export default function OrderLayout() {
         />
 
         <Tabs.Screen
-          name="orderfood/index"
+          name="handleorder"
           options={{
-            title: "Pesan Makanan",
+            title: "Daftar Pesanan",
             tabBarIcon: ({ color }) => (
               <Ionicons name="fast-food-outline" color={color} size={24} />
             ),
           }}
         />
-
-        <Tabs.Screen
-          name="orderlist/history"
-          options={{
-            href: null,
-          }}
-        />
-
-        <Tabs.Screen
-          name="orderfood/menu"
-          options={{
-            href: null,
-          }}
-        />
-
-        <Tabs.Screen
-          name="orderfood/keranjang"
-          options={{
-            href: null,
-          }}
-        />
       </Tabs>
-    </CartProvider>
   );
 }

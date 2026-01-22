@@ -9,6 +9,7 @@ if (!isLoggedIn) return <Redirect href="../login" />;
 
   return 	<Stack>
     <Stack.Screen name="order" options={{ headerShown: false }} />
+    <Stack.Screen name="admin" options={{ headerShown: false }} />
     <Stack.Screen name="movie" options={{ headerShown: false }} />
     <Stack.Screen name="lokasi" options={{ headerShown: false }} />
     <Stack.Screen name="topup" options={{ title: "Top Up Saldo" }} />

@@ -7,6 +7,7 @@ import LogoutButton from "../component/logoutButton";
 
 export default function Index() {
   const [username, setUsername] = useState<string>("");
+  const [role, setRole] = useState<string | null>(null);
   const { logout } = useAuth();
   const router = useRouter();
 
@@ -26,6 +27,14 @@ export default function Index() {
 
   useEffect(() => {
     cekLogin();
+  }, []);
+
+  useEffect(() => {
+    const getRole = async () => {
+      const storedRole = await AsyncStorage.getItem("role");
+      setRole(storedRole);
+    };
+    getRole();
   }, []);
 
   return (
@@ -48,19 +57,32 @@ export default function Index() {
           />
         </View>
 
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="🎟️ Pesan Tiket / Makanan"
-            onPress={() => router.push("/order" as Href)}
-          />
-        </View>
+        {role === "user" && (
+          <View style={styles.buttonWrapper}>
+            <Button
+              title="🎟️ Pesan Tiket / Makanan"
+              onPress={() => router.push("/order" as Href)}
+            />
+          </View>
+        )}
 
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="💰 Top Up Saldo"
-            onPress={() => router.push("/topup" as Href)}
-          />
-        </View>
+        {role === "user" && (
+          <View style={styles.buttonWrapper}>
+            <Button
+              title="💰 Top Up Saldo"
+              onPress={() => router.push("/topup" as Href)}
+            />
+          </View>
+        )}
+
+        {role === "admin" && (
+          <View style={styles.buttonWrapper}>
+            <Button
+              title="📋 Pesanan"
+              onPress={() => router.push("/admin" as Href)}
+            />
+          </View>
+        )}
       </View>
 
       <View style={{ marginTop: 30 }}>

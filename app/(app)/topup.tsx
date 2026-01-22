@@ -23,6 +23,7 @@ export default function Index() {
             const json = await response.json();
 
             setSaldo(Number(json.saldo));
+            await AsyncStorage.setItem("saldo", json.saldo);
         } catch (error) {
             console.error(error);
         }

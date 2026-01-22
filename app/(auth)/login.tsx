@@ -53,6 +53,7 @@ export default function Login() {
             try {
                 await AsyncStorage.setItem("username", json.user_name);
                 await AsyncStorage.setItem("role", json.role);
+                await AsyncStorage.setItem("saldo", json.saldo);
                 await AsyncStorage.setItem("userid", username);
                 alert("Login successful");
                 login();
