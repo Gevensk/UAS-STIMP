@@ -1,185 +1,231 @@
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
-import { 
-  View, Text, StyleSheet, Pressable, ScrollView, Alert, ActivityIndicator 
-} from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, StyleSheet, Alert, Pressable, ActivityIndicator, ScrollView } from "react-native";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage'; // WAJIB ADA
+
+// =================================================================
+// 🔗 KONFIGURASI API (SESUAI SERVER UBAYA)
+// =================================================================
+const API_BASE = "https://ubaya.cloud/react/160422173"; 
+// =================================================================
 
 export default function Checkout() {
+  const router = useRouter();
   const params = useLocalSearchParams();
   
-  // Ambil data yang dikirim dari halaman Kursi
-  const schedule_id = params.schedule_id as string;
-  const studio_name = params.studio_name as string;
-  const seats = JSON.parse(params.seats as string); // Parsing JSON string jadi Array
-  const total_price = parseInt(params.total_ticket_price as string);
-  
-  // Biaya Admin (Ceritanya)
-  const adminFee = 5000;
-  const grandTotal = total_price + adminFee;
-
+  // State
   const [loading, setLoading] = useState(false);
+  const [checkingSaldo, setCheckingSaldo] = useState(true);
+  
+  // Data User (Dinamis dari Login)
+  const [userId, setUserId] = useState(""); 
+  const [userSaldo, setUserSaldo] = useState(0); 
+  const [userName, setUserName] = useState("");
 
-  const handlePay = async () => {
-    setLoading(true);
+  // Parsing Data Kursi
+  let selectedSeats = [];
+  try {
+    selectedSeats = params.seats ? JSON.parse(params.seats as string) : [];
+  } catch (e) { selectedSeats = []; }
+
+  const scheduleId = parseInt(params.schedule_id as string);
+  const studioName = params.studio_name || "Studio";
+  const totalPrice = parseInt(params.total_ticket_price as string) || 0;
+
+  // --- 1. AMBIL DATA USER DARI SESSION (AsyncStorage) ---
+  useFocusEffect(
+    useCallback(() => {
+      checkSessionAndSaldo();
+    }, [])
+  );
+
+  const checkSessionAndSaldo = async () => {
+    setCheckingSaldo(true);
     try {
-        const form = new FormData();
-        form.append("schedule_id", schedule_id);
-        form.append("user_id", "1"); // Nanti ganti dinamis kalau sudah ada Login
-        form.append("total_bayar", grandTotal.toString());
-        form.append("seats", JSON.stringify(seats)); // Kirim array sebagai string JSON
+        // Ambil username yang disimpan saat Login
+        // Pastikan key-nya sesuai dengan file Login.tsx kamu (biasanya 'username' atau 'user_id')
+        const sessionUser = await AsyncStorage.getItem('username'); 
 
-        const res = await fetch("https://ubaya.cloud/react/160422173/submit_order.php", {
-            method: "POST",
-            body: form
-        });
-        
-        const data = await res.json();
-        
-        if (data.result === "success") {
-            Alert.alert("Berhasil!", "Tiket berhasil dibeli. Selamat menonton!", [
-                { 
-                    text: "OK", 
-                    onPress: () => router.dismissAll() // Kembali ke Home (Reset Stack)
-                }
+        if (!sessionUser) {
+            Alert.alert("Error", "Sesi habis. Silakan login ulang.", [
+                { text: "OK", onPress: () => router.replace("/") }
             ]);
-        } else {
-            Alert.alert("Gagal", data.message);
+            return;
         }
 
+        setUserId(sessionUser); // Simpan ID ke state
+        
+        // Langsung cek saldo ke API Ubaya
+        await fetchSaldo(sessionUser);
+
     } catch (error) {
-        Alert.alert("Error", "Terjadi kesalahan koneksi");
-        console.log(error);
+        console.error("Session Error:", error);
     } finally {
-        setLoading(false);
+        setCheckingSaldo(false);
+    }
+  };
+
+  // --- 2. FUNGSI CEK SALDO KE SERVER UBAYA ---
+  const fetchSaldo = async (activeUser: any) => {
+    try {
+        const url = `${API_BASE}/get_user.php?user_id=${activeUser}&t=${new Date().getTime()}`;
+        console.log("Cek Saldo URL:", url);
+
+        const response = await fetch(url);
+        const json = await response.json();
+
+        if (json.status === "success") {
+            setUserSaldo(parseInt(json.data.saldo));
+            setUserName(json.data.nama);
+        } else {
+            console.log("Gagal ambil saldo:", json.message);
+        }
+    } catch (error) {
+        console.error("Network Error:", error);
+        Alert.alert("Koneksi Gagal", "Gagal menghubungi server Ubaya.");
+    }
+  };
+
+  const isSaldoCukup = userSaldo >= totalPrice;
+
+  // --- 3. PROSES PEMBAYARAN ---
+  const handlePay = async () => {
+    if (!userId) return; // Penjagaan ganda
+
+    setLoading(true);
+    try {
+      const payload = {
+        user_id: userId, // Pakai ID asli yang sedang login
+        schedule_id: scheduleId,
+        seats: selectedSeats,
+        total_bayar: totalPrice
+      };
+
+      console.log("Mengirim Payment:", payload);
+
+      const response = await fetch(`${API_BASE}/process_payment.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        Alert.alert("Pembayaran Berhasil!", "Tiket Anda telah tersimpan.", [
+            { 
+                text: "OK", 
+                onPress: () => {
+                    // Kembali ke Home
+                    while (router.canGoBack()) { router.back(); }
+                    router.replace("/"); 
+                } 
+            }
+        ]);
+      } else {
+        Alert.alert("Gagal", result.message);
+        // Refresh saldo in case ada perubahan
+        fetchSaldo(userId); 
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Terjadi kesalahan saat menghubungi server.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.headerTitle}>Review Pesanan</Text>
+      
+      {/* KARTU DETAIL FILM */}
+      <View style={styles.card}>
+        <Text style={styles.label}>Studio</Text>
+        <Text style={styles.value}>{studioName}</Text>
+
+        <Text style={styles.label}>Kursi Dipilih</Text>
+        <Text style={styles.value}>{selectedSeats.length > 0 ? selectedSeats.join(", ") : "-"}</Text>
         
-        <Text style={styles.title}>Ringkasan Pesanan</Text>
-
-        {/* KARTU STRUK / TIKET */}
-        <View style={styles.ticketCard}>
-            
-            {/* Header Struk */}
-            <View style={styles.ticketHeader}>
-                <Text style={styles.movieTitle}>UBAYA CINEPLEX</Text>
-                <Text style={styles.studioName}>{studio_name}</Text>
-            </View>
-
-            {/* Garis Putus-putus (Dashed Line Manual) */}
-            <View style={styles.dashedLine} />
-
-            {/* Detail Pesanan */}
-            <View style={styles.detailRow}>
-                <Text style={styles.label}>Kursi Dipilih</Text>
-                <Text style={styles.value}>{seats.join(", ")}</Text>
-            </View>
-            <View style={styles.detailRow}>
-                <Text style={styles.label}>Jumlah Tiket</Text>
-                <Text style={styles.value}>{seats.length} x Orang</Text>
-            </View>
-             
-             {/* Rincian Harga */}
-             <View style={[styles.dashedLine, { marginTop: 20 }]} />
-             
-             <View style={styles.priceRow}>
-                <Text style={styles.label}>Subtotal Tiket</Text>
-                <Text style={styles.value}>Rp {total_price.toLocaleString("id-ID")}</Text>
-             </View>
-             <View style={styles.priceRow}>
-                <Text style={styles.label}>Biaya Layanan</Text>
-                <Text style={styles.value}>Rp {adminFee.toLocaleString("id-ID")}</Text>
-             </View>
-
-             <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total Bayar</Text>
-                <Text style={styles.totalValue}>Rp {grandTotal.toLocaleString("id-ID")}</Text>
-             </View>
+        <View style={styles.divider} />
+        
+        <View style={styles.row}>
+          <Text style={styles.totalLabel}>Total Tagihan</Text>
+          <Text style={styles.totalValue}>Rp {totalPrice.toLocaleString("id-ID")}</Text>
         </View>
+      </View>
 
-        {/* Metode Pembayaran (UI Only) */}
-        <Text style={[styles.title, { marginTop: 30, fontSize: 16 }]}>Metode Pembayaran</Text>
-        <View style={styles.paymentMethod}>
-            <View style={styles.radioSelected} />
-            <Text style={{ fontWeight: 'bold' }}>Saldo UbayaPay</Text>
-            <Text style={{ marginLeft: 'auto', color: '#3f35f8' }}>Rp 5.000.000</Text>
-        </View>
+      {/* KARTU SALDO & USER */}
+      <View style={[styles.card, { marginTop: 20 }]}>
+        <Text style={styles.label}>Pembayaran atas nama:</Text>
+        <Text style={[styles.value, {marginBottom: 5}]}>{userName || userId || "Loading..."}</Text>
+        
+        <View style={styles.divider} />
 
-      </ScrollView>
+        <Text style={styles.label}>Metode Pembayaran: Saldo Akun</Text>
+        
+        {checkingSaldo ? (
+             <ActivityIndicator size="small" color="#3f35f8" style={{alignSelf:'flex-start', marginVertical: 10}} />
+        ) : (
+            <View>
+                <View style={styles.row}>
+                  <Text style={{fontSize: 16}}>Sisa Saldo Anda:</Text>
+                  <Text style={{ fontWeight: 'bold', fontSize: 18, color: '#333' }}>
+                    Rp {userSaldo.toLocaleString("id-ID")}
+                  </Text>
+                </View>
 
-      {/* Tombol Bayar */}
+                {!isSaldoCukup && (
+                  <View style={styles.errorBox}>
+                    <Text style={styles.errorText}>
+                      ⚠️ Saldo Tidak Cukup
+                    </Text>
+                    <Text style={{color: 'red', fontSize: 12}}>
+                      Kurang Rp {(totalPrice - userSaldo).toLocaleString("id-ID")}
+                    </Text>
+                  </View>
+                )}
+            </View>
+        )}
+      </View>
+
+      {/* TOMBOL BAYAR */}
       <View style={styles.footer}>
         <Pressable 
-            style={styles.btnPay} 
-            onPress={handlePay}
-            disabled={loading}
+          style={[
+            styles.btnPay, 
+            (!isSaldoCukup || loading || checkingSaldo) && styles.btnDisabled
+          ]}
+          onPress={handlePay}
+          disabled={!isSaldoCukup || loading || checkingSaldo}
         >
-            {loading ? (
-                <ActivityIndicator color="white" />
-            ) : (
-                <Text style={styles.btnText}>Bayar Sekarang ➝</Text>
-            )}
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>
+              {checkingSaldo ? "Memuat Data..." : (isSaldoCukup ? "Bayar Sekarang" : "Top Up Dulu")}
+            </Text>
+          )}
         </Pressable>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" }, // Background agak abu
-  title: { fontSize: 20, fontWeight: "bold", marginBottom: 15, color: "#333" },
-  
-  ticketCard: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    elevation: 3, // Shadow Android
-    shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, // Shadow iOS
-  },
-  ticketHeader: { alignItems: "center", marginBottom: 15 },
-  movieTitle: { fontSize: 18, fontWeight: "900", color: "#3f35f8", letterSpacing: 1 },
-  studioName: { fontSize: 14, color: "gray", marginTop: 2 },
-
-  dashedLine: {
-    height: 1,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderStyle: "dashed", // Style garis putus-putus
-    marginVertical: 10,
-    borderRadius: 1
-  },
-
-  detailRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  priceRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
-  label: { color: "gray" },
-  value: { fontWeight: "600", color: "#333" },
-
-  totalRow: { 
-      flexDirection: "row", justifyContent: "space-between", 
-      marginTop: 15, paddingTop: 15, 
-      borderTopWidth: 1, borderTopColor: "#eee" 
-  },
-  totalLabel: { fontSize: 16, fontWeight: "bold" },
-  totalValue: { fontSize: 18, fontWeight: "bold", color: "#3f35f8" },
-
-  paymentMethod: {
-      flexDirection: 'row', alignItems: 'center',
-      backgroundColor: 'white', padding: 15, borderRadius: 10,
-      borderWidth: 1, borderColor: '#3f35f8',
-      marginTop: 10
-  },
-  radioSelected: {
-      width: 16, height: 16, borderRadius: 8, backgroundColor: '#3f35f8', marginRight: 10
-  },
-
-  footer: {
-    padding: 20, backgroundColor: "white", borderTopWidth: 1, borderColor: "#eee"
-  },
-  btnPay: {
-    backgroundColor: "#3f35f8", padding: 15, borderRadius: 10, alignItems: "center"
-  },
-  btnText: { color: "white", fontWeight: "bold", fontSize: 16 }
+  container: { flexGrow: 1, padding: 20, backgroundColor: '#F8F9FA' },
+  headerTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', marginTop: 10 },
+  card: { backgroundColor: 'white', padding: 20, borderRadius: 12, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 },
+  label: { color: 'gray', fontSize: 12, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 },
+  value: { fontSize: 16, fontWeight: '600', marginBottom: 15, color: '#222' },
+  divider: { height: 1, backgroundColor: '#eee', marginVertical: 10 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  totalLabel: { fontSize: 16, color: '#444' },
+  totalValue: { fontSize: 20, fontWeight: 'bold', color: '#3f35f8' },
+  errorBox: { marginTop: 15, padding: 10, backgroundColor: '#ffe6e6', borderRadius: 8, borderLeftWidth: 4, borderLeftColor: 'red' },
+  errorText: { color: 'red', fontWeight: 'bold', fontSize: 14 },
+  footer: { marginTop: 30 },
+  btnPay: { backgroundColor: '#3f35f8', paddingVertical: 16, borderRadius: 12, alignItems: 'center', shadowColor: "#3f35f8", shadowOpacity: 0.3, shadowRadius: 5, elevation: 5 },
+  btnDisabled: { backgroundColor: '#ccc', shadowOpacity: 0, elevation: 0 },
+  btnText: { color: 'white', fontSize: 18, fontWeight: 'bold' }
 });
