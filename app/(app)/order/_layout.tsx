@@ -1,6 +1,7 @@
 import { CartProvider } from "@/app/context/CartContext";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs, useRouter } from "expo-router";
+import React from "react";
 import { Pressable } from "react-native";
 
 export default function OrderLayout() {
@@ -34,7 +35,7 @@ export default function OrderLayout() {
         />
 
         <Tabs.Screen
-          name="orderticket"
+          name="orderticket/index"
           options={{
             title: "Pesan Tiket",
             tabBarIcon: ({ color }) => (
@@ -69,6 +70,27 @@ export default function OrderLayout() {
 
         <Tabs.Screen
           name="orderfood/keranjang"
+          options={{
+            href: null,
+          }}
+        />
+
+        <Tabs.Screen
+          name="orderticket/[movieid]"
+          options={{
+            href: null,
+          }}
+        />
+
+        <Tabs.Screen
+          name="orderticket/checkout"
+          options={{
+            href: null,
+          }}
+        />
+
+        <Tabs.Screen
+          name="orderticket/seatselection"
           options={{
             href: null,
           }}

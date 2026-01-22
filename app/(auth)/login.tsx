@@ -92,8 +92,7 @@ export default function Login() {
                 </View>
 
                 <View style={styles.viewRow}>
-                    <Button
-                        style={styles.button}
+                    <Button style={styles.button}
                         title="Submit"
                         onPress={handleLogin}
                     />

@@ -1,5 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs, useRouter } from "expo-router";
+import React from "react";
 import { Pressable } from "react-native";
 
 export default function AdminLayout() {
@@ -21,15 +22,6 @@ export default function AdminLayout() {
           ),
         }}
       >
-        <Tabs.Screen
-          name="handleticket"
-          options={{
-            title: "Daftar Tiket",
-            tabBarIcon: ({ color }) => (
-              <Ionicons name="ticket-outline" color={color} size={24} />
-            ),
-          }}
-        />
 
         <Tabs.Screen
           name="handleorder"
