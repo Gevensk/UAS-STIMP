@@ -1,4 +1,4 @@
-import { Card } from "@rneui/base";
+import { Button, Card } from "@rneui/base";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -10,7 +10,6 @@ import {
 
 export default function HandleOrder() {
   const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchOrders();
@@ -21,23 +20,57 @@ export default function HandleOrder() {
       const res = await fetch(
         "https://ubaya.cloud/react/160422173/orderlist.php"
       );
-
       const json = await res.json();
+
       if (json.success) {
         setOrders(json.data);
       }
     } catch (err) {
       console.log("FETCH ERROR:", err);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const handleSelesai = async (pesananId: number) => {
+    try {
+      const res = await fetch(
+        "https://ubaya.cloud/react/160422173/orderselesai.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            pesanan_id: pesananId,
+          }),
+        }
+      );
+
+      const json = await res.json();
+
+      if (json.success) {
+        alert("Pesanan Selesai");
+        fetchOrders();
+      } else {
+        alert(json.message ?? "Gagal update status");
+      }
+    } catch (error) {
+      console.log("UPDATE ERROR:", error);
+      alert("Terjadi kesalahan");
     }
   };
 
   const renderOrder = ({ item }: any) => (
     <Card containerStyle={styles.card}>
-      <Text style={styles.lokasi}>
-        {item.nama_lokasi} ({item.status})
-      </Text>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.lokasi}>{item.nama_lokasi}</Text>
+          <Text style={styles.status}>({item.status})</Text>
+        </View>
+
+        <Text style={styles.username}>{item.username}</Text>
+      </View>
+
+      <Card.Divider />
 
       {item.items?.map((menu: any, idx: number) => (
         <View key={idx} style={styles.row}>
@@ -56,18 +89,25 @@ export default function HandleOrder() {
         </View>
       ))}
 
-      <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Total Harga</Text>
-        <Text style={styles.totalValue}>
-          Rp {item.total_harga}
-        </Text>
+      <View style={styles.footerRow}>
+        <View>
+          <Text style={styles.totalLabel}>Total Harga</Text>
+          <Text style={styles.totalValue}>
+            Rp {item.total_harga}
+          </Text>
+        </View>
+
+        {item.status !== "selesai" && (
+          <Button
+            title="Selesai"
+            color="success"
+            radius={8}
+            onPress={() => handleSelesai(item.pesanan_id)}
+          />
+        )}
       </View>
     </Card>
   );
-
-  if (loading) {
-    return <Text style={{ textAlign: "center", marginTop: 50 }}>Loading...</Text>;
-  }
 
   return (
     <FlatList
@@ -84,10 +124,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
 
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+
   lokasi: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 10,
+  },
+
+  status: {
+    fontSize: 13,
+    color: "#666",
+  },
+
+  username: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2563eb",
   },
 
   row: {
@@ -111,13 +167,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
-  totalRow: {
+  footerRow: {
     borderTopWidth: 1,
     borderColor: "#eee",
     marginTop: 10,
     paddingTop: 10,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
 
   totalLabel: {

@@ -54,7 +54,7 @@ export default function OrderLayout() {
         />
 
         <Tabs.Screen
-          name="orderlist/history"
+          name="orderlist/historyorder"
           options={{
             href: null,
           }}

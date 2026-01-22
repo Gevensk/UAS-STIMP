@@ -1,17 +1,18 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Card } from "@rneui/base";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  FlatList,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View
+    FlatList,
+    Image,
+    Pressable,
+    StyleSheet,
+    Text,
+    View
 } from "react-native";
 
-export default function OrderList() {
+export default function OrderHistory() {
   const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export default function OrderList() {
       if (!userId) return;
 
       const res = await fetch(
-        "https://ubaya.cloud/react/160422173/userorder.php",
+        "https://ubaya.cloud/react/160422173/userorderhistory.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -66,24 +67,27 @@ export default function OrderList() {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <FlatList
+    <>
+        <Stack.Screen
+            options={{
+                title: "Daftar Menu",
+                headerLeft: () => (
+                    <Pressable
+                    onPress={() => router.replace("/order/orderlist")}
+                    style={{ paddingHorizontal: 15 }}
+                    >
+                    <Ionicons name="arrow-back" size={24} color="black" />
+                    </Pressable>
+                ),
+            }}
+        />
+        <FlatList
         data={orders}
         keyExtractor={(item) => item.pesanan_id.toString()}
         renderItem={renderOrder}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      />
-
-      <Pressable
-        style={({ pressed }) => [
-          styles.fab,
-          pressed && { opacity: 0.8 },
-        ]}
-        onPress={() => router.push("/order/orderlist/historyorder")}
-      >
-        <Text style={styles.fabIcon}>📜</Text>
-      </Pressable>
-    </View>
+        contentContainerStyle={{ paddingBottom: 20 }}
+        />
+    </>
   );
 }
 
@@ -136,23 +140,5 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 16,
     fontWeight: "bold",
-  },
-
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#2563eb",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 6,
-  },
-
-  fabIcon: {
-    fontSize: 26,
-    color: "white",
   },
 });
