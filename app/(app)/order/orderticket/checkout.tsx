@@ -108,7 +108,14 @@ export default function Checkout() {
 
         if (result.result === "success") {
             Alert.alert("Berhasil", result.message, [
-                { text: "OK", onPress: () => router.replace("/") }
+                { 
+                    text: "OK", 
+                    onPress: () => {
+                        // Opsi Terbaik:
+                        router.dismissAll(); // Tutup tumpukan stack order
+                        router.push("/(app)"); // Paksa pindah ke root (app)
+                    } 
+                }
             ]);
         } else {
             Alert.alert("Gagal", result.message);
